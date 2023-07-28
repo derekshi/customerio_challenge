@@ -1,0 +1,6 @@
+data/
+.vscode/
+output/
+
+profile*
+*.db
