@@ -22,8 +22,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-const inputFile = "./data/messages.2.data"
-const verifyFile = "./data/verify.2.csv"
+const inputFile = "./data/messages.3.data"
+const verifyFile = "./data/verify.3.csv"
 
 const outputFile = "./output/summaryb.txt"
 const dbFileName = "customerio.db"
@@ -155,10 +155,6 @@ func main() {
 	n := 1
 	var last *stream.Record
 	for rec := range ch {
-		//debug
-		if n == 1 {
-			fmt.Printf("processing rec id: %v, offset: %d\n", rec.ID, rec.Position) //10668513
-		}
 		// handle duplicate event ids
 		if _, exists := eids[rec.ID]; exists {
 			// fmt.Printf("duplicate event id: %s. Skipping...\n", rec.ID)
@@ -303,7 +299,7 @@ func saveBatch(wg *sync.WaitGroup, batchChann <-chan BatchData, db *bolt.DB) {
 					for k, v := range attr.attributes {
 						attrBucket.Put([]byte(prefix+k), []byte(v))
 					}
-					// Convert lastUpdated to byte slice
+
 					e = utils.PutInt(bucket, userId, attr.lastUpdated)
 					if e != nil {
 						fmt.Println("error writing user attr data.", e.Error())
@@ -333,13 +329,10 @@ func saveBatch(wg *sync.WaitGroup, batchChann <-chan BatchData, db *bolt.DB) {
 			fmt.Println("db operation has failed.", err.Error())
 		}
 	}
-	fmt.Println("saveBatch exit")
-
 }
 
 // Read data for writing out summary
 func readBatch(db *bolt.DB, writeChan chan<- string) {
-	fmt.Println("Reading data from DB")
 	defer close(writeChan)
 
 	db.View(func(tx *bolt.Tx) error {
@@ -360,13 +353,18 @@ func readBatch(db *bolt.DB, writeChan chan<- string) {
 					line += attrName + "=" + string(val) + ","
 				}
 
+				evtLine := ""
 				evtPrefix := []byte(userId + ":Events:")
 				for key, val := c.Seek(evtPrefix); key != nil && bytes.HasPrefix(key, evtPrefix); key, val = c.Next() {
 					evtName := strings.Split(string(key), ":")[2]
-					line += evtName + "=" + strconv.Itoa(int(binary.BigEndian.Uint64(val))) + ","
+					evtLine += evtName + "=" + strconv.Itoa(int(binary.BigEndian.Uint64(val))) + ","
 				}
 
-				writeChan <- line[:len(line)-1]
+				// This is baesd on verify file, when event is empty, the ending line has a comma
+				if len(evtLine) > 0 {
+					line += evtLine[:len(evtLine)-1]
+				}
+				writeChan <- line
 			}
 
 			return nil
