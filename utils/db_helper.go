@@ -30,6 +30,7 @@ func GetInt(bucket *bolt.Bucket, key string) (int64, error) {
 	return int64(binary.BigEndian.Uint64(value)), nil
 }
 
+// Read offset value of last record processed
 func RetrieveProcess(db *bolt.DB) int64 {
 	offset := int64(0)
 	db.View(func(tx *bolt.Tx) error {
@@ -51,6 +52,7 @@ func RetrieveProcess(db *bolt.DB) int64 {
 	return offset
 }
 
+// Saving offset position of the last record processed before interruption
 func SaveProcess(offset int64, db *bolt.DB) error {
 	db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(ProcessBucketName))
@@ -71,6 +73,7 @@ func SaveProcess(offset int64, db *bolt.DB) error {
 	return nil
 }
 
+// Saving cached processed event IDs to db
 func SaveProcessedEvents(eids map[string]bool, db *bolt.DB) error {
 	keys := make([]string, 0, len(eids))
 	for k := range eids {
@@ -93,6 +96,7 @@ func SaveProcessedEvents(eids map[string]bool, db *bolt.DB) error {
 
 }
 
+// Read event IDs that have been processed so that we can skip the duplicate on resume
 func ReadProcessedEvents(db *bolt.DB) (map[string]bool, error) {
 	result := make(map[string]bool)
 
@@ -116,6 +120,7 @@ func ReadProcessedEvents(db *bolt.DB) (map[string]bool, error) {
 	return result, nil
 }
 
+// Read last attributes updated timestamp for each user
 func ReadUserAttrs(db *bolt.DB) (map[string]int64, error) {
 	result := make(map[string]int64)
 

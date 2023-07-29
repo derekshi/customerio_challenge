@@ -79,7 +79,6 @@ func main() {
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
-
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -93,29 +92,29 @@ func main() {
 		// remove old db files
 		err := os.Remove(dbFileName)
 		if err != nil {
-			fmt.Println("failed to clear up db file")
+			fmt.Println("Failed to clear db file. ", err.Error())
 		}
 	}
 
-	// init local file db to save intermediary data or interrupted process
+	// Initialize local file db to save intermediary data or interrupted process
 	db, err := bolt.Open(dbFileName, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer db.Close()
 
-	// init cache objects
+	// Initialize cache objects for user attributes
 	users := make(map[string]*UserAttrs)
 
-	// //map store for event data counts
+	// Cache store for event data counts by user
 	events := make(map[string]UserEventCount)
 
-	// //event ids cache for avoiding duplidates
+	// Event ids cache for avoiding duplidates
 	eids := make(map[string]bool)
-	from := int64(0)
 
-	// if resume previous process, we load cache data from db
+	// File offset to start with
+	from := int64(0)
+	// If resume previous process, we load cache data from db
 	if *shouldResume {
 		from = utils.RetrieveProcess(db)
 
@@ -228,7 +227,7 @@ func main() {
 		}
 
 		writer.Flush()
-		fmt.Println("Summeries created.")
+		fmt.Println("Summaries created.")
 
 		//validate
 		if err := validate(outputFile, verifyFile); err != nil {
@@ -238,6 +237,7 @@ func main() {
 
 }
 
+// Process streaming record one by one
 func handleStreamData(rec *stream.Record, users map[string]*UserAttrs, events map[string]UserEventCount) {
 	if rec.Type == "event" {
 		if evt, ok := events[rec.UserID]; ok {
@@ -275,6 +275,7 @@ func handleStreamData(rec *stream.Record, users map[string]*UserAttrs, events ma
 
 }
 
+// Separate process to periodically flush memory cache to db
 func saveBatch(wg *sync.WaitGroup, batchChann <-chan BatchData, db *bolt.DB) {
 	defer wg.Done()
 	for data := range batchChann {
