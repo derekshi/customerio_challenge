@@ -199,37 +199,41 @@ func main() {
 	// wait for the batch saving to complete
 	wg.Wait()
 
-	//Save last record offset position for resume
-	utils.SaveProcess(last.Position, db)
-	utils.SaveProcessedEvents(eids, db)
+	select {
+	case <-ctx.Done():
+		fmt.Println("Process interrupted. Saving progress...")
+		//Save last record offset position for resume
+		utils.SaveProcess(last.Position, db)
+		utils.SaveProcessedEvents(eids, db)
+	default:
+		// create channel for incremental writing data to final outputs
+		writeChann := make(chan string)
+		go readBatch(db, writeChann)
 
-	// create channel for incremental writing data to final outputs
-	writeChann := make(chan string)
-	go readBatch(db, writeChann)
-
-	// write summary
-	file, err := os.Create(outputFile)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-
-	for line := range writeChann {
-		_, err := writer.WriteString(line + "\n")
+		// write summary
+		file, err := os.Create(outputFile)
 		if err != nil {
-			fmt.Println("Error writing to file:", err)
+			fmt.Println("Error creating file:", err)
+			log.Fatal(err)
 		}
-	}
+		defer file.Close()
 
-	writer.Flush()
-	fmt.Println("Summeries created.")
+		writer := bufio.NewWriter(file)
 
-	//validate
-	if err := validate(outputFile, verifyFile); err != nil {
-		log.Fatal(err)
+		for line := range writeChann {
+			_, err := writer.WriteString(line + "\n")
+			if err != nil {
+				fmt.Println("Error writing to file:", err)
+			}
+		}
+
+		writer.Flush()
+		fmt.Println("Summeries created.")
+
+		//validate
+		if err := validate(outputFile, verifyFile); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 }
