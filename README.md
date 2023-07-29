@@ -71,8 +71,16 @@ go run generate/main.go -out data/messages.3.data -verify data/verify.3.csv --se
 
 1. The first solution should solve the basic constraints and be as simple as possible. Correctness and readability are the key requirements here. This solution can run all in memory, and isn't subject to any RAM constraints, and does not need to support restart or be fast.
 
-    source code for this solution is located at `/solutiona/main.go`
+    SOLUTION: source code for this solution is located at `./solutiona/main.go`.
     
+    Run the code (input file is hard-coded at top of the source code): 
+
+    ```
+    go run solutiona/main.go
+    ```
+    
+    You will find output `./data/summarya.txt`
+
 
 2. A second solution should extend the first solution, and support large datasets without keeping all data resident in memory.
     - There are resource constraints and your solution must not exceed them for any given dataset up to the maximums detailed below. **Your solution must not use more than 1GB of RAM and 10GB of Storage.** We will test this by running your solution on a 64-bit Ubuntu Machine with 1GB of RAM and a 100GB SSD. If your solution requires any installed applications (databases, caches, etc.) we will install with the OS defaults and we will not apply any tuning to the configuration.
@@ -80,11 +88,17 @@ go run generate/main.go -out data/messages.3.data -verify data/verify.3.csv --se
     - Your solution should be fault tolerant: expect your program (and/or any database you use) to be force killed and restarted while processing the file. This shouldn’t lead to any incorrect counts, etc.
     - Bonus points if you can maintain your state and position in the file, to prevent the need to reprocess from the beginning after restart
 
-### Things we'll want to talk about
+    SOLUTION source code of this solution is `./main.go`. this solution uses `BBOLT` key/value file store. 
 
-- Why did you choose the architecture used in your solution?
-- What other architectures could you envision for this problem?
-- What assumptions did you make?
-- Where are the bottlenecks? What's using the most memory, the most cpu, the most time?
-- How would you improve the performance?
-- After these are covered we'll want to discuss how to extend your solution in various ways.
+    Simply run:
+    ```
+    go run main.go
+    ```
+    Input file is hard-coded on top of the source file. It will outputs `./data/summaryb.txt`
+
+    This solution supports CTRL+C to interrupt to program, and you can run following command to resume:
+    ```
+    go run main.go -resume
+    ```
+
+    The solution currently only deal with resumption of processing one single data file. Future improvement can be done to support multiple datafiles processing and resumption.
