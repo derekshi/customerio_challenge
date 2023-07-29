@@ -166,7 +166,7 @@ func main() {
 		last = rec
 
 		// enable flushing memory data to disk
-		if n >= 5000 {
+		if n%5000 == 0 {
 			dbBatchChan <- BatchData{
 				attrs:  users,
 				events: events,
@@ -182,7 +182,6 @@ func main() {
 			}
 			users = p
 			events = make(map[string]UserEventCount)
-			n = -1
 		}
 
 		n++
@@ -201,10 +200,13 @@ func main() {
 	select {
 	case <-ctx.Done():
 		fmt.Println("Process interrupted. Saving progress...")
+		fmt.Printf("Last record processed at %d. Total %d records processed.\n", last.Position, n)
 		//Save last record offset position for resume
 		utils.SaveProcess(last.Position, db)
 		utils.SaveProcessedEvents(eids, db)
 	default:
+		fmt.Printf("Total %d records processed\n", n)
+
 		// create channel for incremental writing data to final outputs
 		writeChann := make(chan string)
 		go readBatch(db, writeChann)
