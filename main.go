@@ -25,7 +25,7 @@ import (
 const inputFile = "./data/messages.3.data"
 const verifyFile = "./data/verify.3.csv"
 
-const outputFile = "./output/summaryb.txt"
+const outputFile = "./data/summaryb.txt"
 const dbFileName = "customerio.db"
 const dbBucketName = "UserBucket"
 const attrBucketName = "AttrBucket"

@@ -67,11 +67,13 @@ go run generate/main.go -out data/messages.2.data -verify data/verify.2.csv --se
 go run generate/main.go -out data/messages.3.data -verify data/verify.3.csv --seed 1560000000 -count 1000000 -attrs 10 -events 5000000 -maxevents 10 -dupes 20
 ```
 
-### Evaluation Criteria
-
-We expect to see two solutions
+### Two Solutions
 
 1. The first solution should solve the basic constraints and be as simple as possible. Correctness and readability are the key requirements here. This solution can run all in memory, and isn't subject to any RAM constraints, and does not need to support restart or be fast.
+
+    source code for this solution is located at `/solutiona/main.go`
+    
+
 2. A second solution should extend the first solution, and support large datasets without keeping all data resident in memory.
     - There are resource constraints and your solution must not exceed them for any given dataset up to the maximums detailed below. **Your solution must not use more than 1GB of RAM and 10GB of Storage.** We will test this by running your solution on a 64-bit Ubuntu Machine with 1GB of RAM and a 100GB SSD. If your solution requires any installed applications (databases, caches, etc.) we will install with the OS defaults and we will not apply any tuning to the configuration.
     - We will be testing your solution with a file containing **at least 1 million** unique user_id values, **at least 10 million** unique events and **~10 attributes** per user

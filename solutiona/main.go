@@ -14,7 +14,9 @@ import (
 	"customerio_challenge/stream"
 )
 
-const outputFile = "./output/summarya.txt"
+const inputFile = "./data/messages.2.data"
+const outputFile = "./data/summarya.txt"
+const verifyFile = "./data/verify.2.csv"
 
 type UserEventCount map[string]int
 
@@ -92,7 +94,7 @@ func main() {
 		cancel()
 	}()
 
-	input, err := os.Open("./data/messages.2.data")
+	input, err := os.Open(inputFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,7 +135,7 @@ func main() {
 	}
 
 	//validate
-	if err := validate(outputFile, "./data/verify.2.csv"); err != nil {
+	if err := validate(outputFile, verifyFile); err != nil {
 		log.Fatal(err)
 	}
 
@@ -219,7 +221,7 @@ func writeSummary(summries []Summary) error {
 	}
 
 	writer.Flush()
-	fmt.Println("Summeries created.")
+	fmt.Println("Summaries created.")
 	return nil
 }
 
